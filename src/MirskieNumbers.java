@@ -2,20 +2,22 @@ import java.util.Scanner;
 import java.util.HashMap;
 
 public class MirskieNumbers {
-    static int getValue(String number) {
-        HashMap<Character, Integer> dictionary = new HashMap<>();
+    static final HashMap<Character, Integer> dictionary = new HashMap<>();
+
+    static {
         dictionary.put('A', 1);
         dictionary.put('B', 10);
         dictionary.put('C', 100);
         dictionary.put('D', 1000);
         dictionary.put('E', 10000);
+    }
 
+    static int getValue(String number) {
         int total = 0;
         int maxRight = 0;
 
         for (int i = number.length() - 1; i >= 0; i--) {
             int value = dictionary.get(number.charAt(i));
-
             if (value < maxRight) {
                 total -= value;
             } else {
@@ -23,64 +25,25 @@ public class MirskieNumbers {
                 maxRight = value;
             }
         }
-
         return total;
     }
 
     static int maxPossibleValue(String number) {
-        HashMap<Character, Integer> dictionary = new HashMap<>();
-        dictionary.put('A', 1);
-        dictionary.put('B', 10);
-        dictionary.put('C', 100);
-        dictionary.put('D', 1000);
-        dictionary.put('E', 10000);
-
-        int n = number.length();
-        int[] values = new int[n];
-        int[] suffixMax = new int[n];
-
-        for (int i = 0; i < n; i++) {
-            values[i] = dictionary.get(number.charAt(i));
-        }
-
-        suffixMax[n - 1] = values[n - 1];
-        for (int i = n - 2; i >= 0; i--) {
-            suffixMax[i] = Math.max(values[i], suffixMax[i + 1]);
-        }
-
-        int currentValue = 0;
-        for (int i = 0; i < n; i++) {
-            if (values[i] < suffixMax[i]) {
-                currentValue -= values[i];
-            } else {
-                currentValue += values[i];
-            }
-        }
-
+        int currentValue = getValue(number);
         int maxValue = currentValue;
+
+        char[] chars = number.toCharArray();
+        int n = chars.length;
+
+        // Найдем первую замену, которая дает максимальный прирост
         for (int i = 0; i < n; i++) {
+            char original = chars[i];
             for (char newChar : "EDCBA".toCharArray()) {
-                if (newChar != number.charAt(i)) {
-                    int newValue = dictionary.get(newChar);
-                    int oldValue = values[i];
-
-                    int modifiedValue = currentValue;
-                    if (oldValue < suffixMax[i]) {
-                        modifiedValue += oldValue;
-                    } else {
-                        modifiedValue -= oldValue;
-                    }
-
-                    int newSuffixMax = (i + 1 < n) ? suffixMax[i + 1] : 0;
-                    newSuffixMax = Math.max(newSuffixMax, newValue);
-
-                    if (newValue < newSuffixMax) {
-                        modifiedValue -= newValue;
-                    } else {
-                        modifiedValue += newValue;
-                    }
-
-                    maxValue = Math.max(maxValue, modifiedValue);
+                if (newChar != original) {
+                    chars[i] = newChar;
+                    int newValue = getValue(new String(chars));
+                    maxValue = Math.max(maxValue, newValue);
+                    chars[i] = original;  // Откатываем замену
                 }
             }
         }
